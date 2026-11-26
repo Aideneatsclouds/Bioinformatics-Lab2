@@ -11,6 +11,146 @@ st.set_page_config(page_title="Bioinformatics Lab Suite", layout="wide")
 
 
 # ==========================================
+# CUSTOM CSS: Pastel Pink & Matcha Green Theme
+# ==========================================
+def apply_custom_theme():
+    st.markdown(
+        """
+        <style>
+        /* Global Font & Pastel Gradient Background */
+        html, body, [class*="css"], .stApp, p, label, span, div, input, button, textarea {
+            font-family: 'Times New Roman', Times, serif !important;
+        }
+
+        .stApp {
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 35%, #e8f5e9 70%, #c8e6c9 100%) !important;
+            color: #3d2c35 !important;
+        }
+
+        /* Sidebar Styling */
+        [data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #f48fb1 0%, #a5d6a7 100%) !important;
+            border-right: 2px solid rgba(255, 255, 255, 0.7);
+            border-top-right-radius: 24px;
+            border-bottom-right-radius: 24px;
+        }
+
+        [data-testid="stSidebar"] * {
+            color: #ffffff !important;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.85), 0 1px 3px rgba(90, 45, 65, 0.45);
+        }
+
+        /* Glowing White Headers */
+        h1, h2, h3, [data-testid="stHeading"] * {
+            font-family: 'Times New Roman', Times, serif !important;
+            color: #ffffff !important;
+            text-shadow:
+                0 0 8px rgba(255, 255, 255, 0.95),
+                0 0 18px rgba(244, 143, 177, 0.9),
+                0 2px 6px rgba(136, 74, 102, 0.55) !important;
+            letter-spacing: 0.4px;
+        }
+
+        h1 {
+            background: linear-gradient(90deg, rgba(244, 143, 177, 0.75), rgba(165, 214, 167, 0.75));
+            padding: 14px 22px !important;
+            border-radius: 20px !important;
+            border: 1.5px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 6px 20px rgba(244, 143, 177, 0.25);
+        }
+
+        h2, h3 {
+            background: rgba(240, 168, 194, 0.6);
+            padding: 8px 16px !important;
+            border-radius: 16px !important;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            display: inline-block;
+            margin-top: 8px !important;
+        }
+
+        /* Rounded Cards for Metrics, Alerts, and Expanders */
+        [data-testid="stMetric"] {
+            background: rgba(255, 255, 255, 0.78) !important;
+            border: 2px solid #f48fb1 !important;
+            border-radius: 20px !important;
+            padding: 16px 20px !important;
+            box-shadow: 0 6px 16px rgba(165, 214, 167, 0.35);
+        }
+
+        [data-testid="stMetricLabel"] * {
+            color: #6d4c5d !important;
+            font-size: 1.05rem !important;
+        }
+
+        [data-testid="stMetricValue"] * {
+            color: #4e7d55 !important;
+            font-weight: bold !important;
+        }
+
+        /* Inputs & Number Boxes */
+        div[data-baseweb="input"] > div,
+        div[data-baseweb="base-input"] {
+            background-color: rgba(255, 255, 255, 0.88) !important;
+            border: 1.5px solid #a5d6a7 !important;
+            border-radius: 16px !important;
+            color: #3d2c35 !important;
+        }
+
+        input {
+            color: #3d2c35 !important;
+            font-size: 1.05rem !important;
+        }
+
+        /* Rounded Pastel Buttons */
+        .stButton > button {
+            background: linear-gradient(90deg, #f48fb1 0%, #a5d6a7 100%) !important;
+            color: #ffffff !important;
+            font-weight: bold !important;
+            font-size: 1.05rem !important;
+            border: 1.5px solid #ffffff !important;
+            border-radius: 22px !important;
+            padding: 10px 24px !important;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 1px 2px rgba(80, 40, 60, 0.4);
+            box-shadow: 0 4px 14px rgba(244, 143, 177, 0.4);
+            transition: all 0.25s ease-in-out;
+        }
+
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(129, 199, 132, 0.55);
+            border-color: #fce4ec !important;
+        }
+
+        /* Code Blocks & Expanders */
+        pre, code {
+            font-family: 'Times New Roman', Times, serif !important;
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            color: #3d2c35 !important;
+            border-radius: 16px !important;
+            border: 1.5px solid #f8bbd0 !important;
+            font-size: 1.05rem !important;
+        }
+
+        [data-testid="stExpander"] {
+            background-color: rgba(255, 255, 255, 0.72) !important;
+            border: 1.5px solid #c8e6c9 !important;
+            border-radius: 18px !important;
+        }
+
+        [data-testid="stAlert"] {
+            border-radius: 18px !important;
+            border: 1.5px solid rgba(255, 255, 255, 0.85) !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+apply_custom_theme()
+
+
+# ==========================================
 # LAB 1 FUNCTIONS: Retrieval & Analysis
 # ==========================================
 def parse_fasta_text(fasta_text):
@@ -21,7 +161,9 @@ def parse_fasta_text(fasta_text):
 
     header = lines[0][1:].strip()
     record_id = header.split()[0] if header else "Unknown"
-    sequence = "".join(line.replace(" ", "") for line in lines[1:] if not line.startswith(">")).upper()
+    sequence = "".join(
+        line.replace(" ", "") for line in lines[1:] if not line.startswith(">")
+    ).upper()
 
     if not sequence:
         return None
@@ -48,7 +190,6 @@ def retrieve_data(protein_id):
         return None
 
 
-# Standard amino acid molecular weights (average Da, water-adjusted) and pKa values
 AA_WEIGHTS = {
     "A": 89.09, "R": 174.20, "N": 132.12, "D": 133.10, "C": 121.15,
     "E": 147.13, "Q": 146.15, "G": 75.07, "H": 155.16, "I": 131.17,
@@ -64,14 +205,12 @@ def estimate_pi_pure_python(seq_str):
     low, high = 0.0, 14.0
     for _ in range(100):
         mid = (low + high) / 2.0
-        # Positive charges: N-term (~9.69), K (~10.5), R (~12.48), H (~6.0)
         pos = (
             1.0 / (1.0 + 10.0 ** (mid - 9.69))
             + counts["K"] / (1.0 + 10.0 ** (mid - 10.5))
             + counts["R"] / (1.0 + 10.0 ** (mid - 12.48))
             + counts["H"] / (1.0 + 10.0 ** (mid - 6.0))
         )
-        # Negative charges: C-term (~2.34), D (~3.65), E (~4.25), C (~8.18), Y (~10.07)
         neg = (
             1.0 / (1.0 + 10.0 ** (2.34 - mid))
             + counts["D"] / (1.0 + 10.0 ** (3.65 - mid))
@@ -249,39 +388,54 @@ def format_alignment_display(aligned1, aligned2):
 
 
 def render_alignment_matrix_html(matrix, seq1, seq2, path):
-    """Renders the scoring matrix as an HTML table with backtrace cells highlighted."""
+    """Renders the scoring matrix in a pastel pink & matcha theme with glowing backtrace cells."""
     row_labels = ["-"] + list(seq1)
     col_labels = ["-"] + list(seq2)
     path_set = set(path)
 
     html = [
-        "<div style='overflow-x: auto;'>",
-        "<table style='border-collapse: collapse; text-align: center; font-family: monospace;'>",
+        "<div style='overflow-x: auto; padding: 12px; background: rgba(255,255,255,0.75); "
+        "border-radius: 20px; border: 2px solid #f48fb1; box-shadow: 0 6px 18px rgba(244,143,177,0.25);'>",
+        "<table style='border-collapse: separate; border-spacing: 4px; text-align: center; "
+        "font-family: \"Times New Roman\", Times, serif; margin: auto;'>",
     ]
 
+    # Header row
     html.append("<tr>")
     html.append(
-        "<th style='border: 1px solid #555; padding: 6px 10px; background: #222; color: #fff;'></th>"
+        "<th style='padding: 8px 12px; border-radius: 12px; background: #f48fb1; color: #ffffff; "
+        "text-shadow: 0 0 8px rgba(255,255,255,0.9); border: 1px solid #ffffff;'></th>"
     )
     for j, col_char in enumerate(col_labels):
         html.append(
-            f"<th style='border: 1px solid #555; padding: 6px 10px; background: #222; color: #fff;'>{j}: {col_char}</th>"
+            f"<th style='padding: 8px 12px; border-radius: 12px; background: #f48fb1; color: #ffffff; "
+            f"text-shadow: 0 0 8px rgba(255,255,255,0.9); border: 1px solid #ffffff;'>{j}: {col_char}</th>"
         )
     html.append("</tr>")
 
+    # Data rows
     for i, row_char in enumerate(row_labels):
         html.append("<tr>")
         html.append(
-            f"<th style='border: 1px solid #555; padding: 6px 10px; background: #222; color: #fff;'>{i}: {row_char}</th>"
+            f"<th style='padding: 8px 12px; border-radius: 12px; background: #f48fb1; color: #ffffff; "
+            f"text-shadow: 0 0 8px rgba(255,255,255,0.9); border: 1px solid #ffffff;'>{i}: {row_char}</th>"
         )
         for j, val in enumerate(matrix[i]):
             if (i, j) in path_set:
                 cell_style = (
-                    "border: 1px solid #555; padding: 6px 10px; "
-                    "background-color: #2e7d32; color: #ffffff; font-weight: bold;"
+                    "padding: 8px 12px; border-radius: 12px; "
+                    "background: linear-gradient(135deg, #81c784, #66bb6a); "
+                    "color: #ffffff; font-weight: bold; "
+                    "text-shadow: 0 0 8px rgba(255,255,255,0.95); "
+                    "border: 1.5px solid #ffffff; "
+                    "box-shadow: 0 0 10px rgba(102, 187, 106, 0.7);"
                 )
             else:
-                cell_style = "border: 1px solid #555; padding: 6px 10px;"
+                cell_style = (
+                    "padding: 8px 12px; border-radius: 12px; "
+                    "background-color: #fff5f8; color: #4a3540; "
+                    "border: 1px solid #f8bbd0;"
+                )
             html.append(f"<td style='{cell_style}'>{val}</td>")
         html.append("</tr>")
 
@@ -351,7 +505,7 @@ if lab_selection == "Lab 1: Sequence Retrieval & Analysis":
                         label="Molecular Weight", value=f"{mol_weight:,.2f} Da"
                     )
 
-                st.markdown("### Amino Acid Composition")
+                st.subheader("3. Amino Acid Composition")
                 st.json(aa_comp)
             else:
                 st.error(
@@ -409,7 +563,7 @@ elif lab_selection == "Lab 2: Pairwise Sequence Alignment":
     with col_g:
         gap_penalty = st.number_input("Gap Penalty", value=-1, step=1)
 
-    align_btn = st.button("Run Sequence Alignment", type="primary")
+    align_btn = st.button("Run Sequence Alignment")
 
     if align_btn:
         if not seq1 or not seq2:
@@ -436,10 +590,10 @@ elif lab_selection == "Lab 2: Pairwise Sequence Alignment":
             with st.expander("View Backtrace Coordinate Path (Row, Col)"):
                 st.write(" -> ".join([f"({r}, {c})" for r, c in path]))
 
-            st.markdown("**Alignment Matrix & Highlighted Backtrace Path:**")
+            st.subheader("3. Alignment Matrix & Backtrace Path")
             st.caption(
-                "Green cells indicate the optimal backtrace path. Row/Column"
-                " headers show `Index: Character`."
+                "Glowing matcha-green cells indicate the optimal backtrace path."
+                " Row/Column headers show Index: Character."
             )
 
             matrix_html = render_alignment_matrix_html(matrix, seq1, seq2, path)
