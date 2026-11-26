@@ -11,33 +11,33 @@ st.set_page_config(page_title="Bioinformatics Lab Suite", layout="wide")
 
 
 # ==========================================
-# CUSTOM CSS: Pastel Pink & Matcha Green Theme
+# CUSTOM CSS: Plain Pastel Pink & Matcha Theme
 # ==========================================
 def apply_custom_theme():
     st.markdown(
         """
         <style>
-        /* Global Font & Pastel Gradient Background */
+        /* Global Font & Plain Pastel Pink Background */
         html, body, [class*="css"], .stApp, p, label, span, div, input, button, textarea {
             font-family: 'Times New Roman', Times, serif !important;
         }
 
         .stApp {
-            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 35%, #e8f5e9 70%, #c8e6c9 100%) !important;
+            background-color: #f9dbe5 !important;
             color: #3d2c35 !important;
         }
 
         /* Sidebar Styling */
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #f48fb1 0%, #a5d6a7 100%) !important;
-            border-right: 2px solid rgba(255, 255, 255, 0.7);
+            background-color: #f4b6cc !important;
+            border-right: 2px solid #ffffff;
             border-top-right-radius: 24px;
             border-bottom-right-radius: 24px;
         }
 
         [data-testid="stSidebar"] * {
             color: #ffffff !important;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.85), 0 1px 3px rgba(90, 45, 65, 0.45);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(110, 55, 80, 0.45);
         }
 
         /* Glowing White Headers */
@@ -46,35 +46,35 @@ def apply_custom_theme():
             color: #ffffff !important;
             text-shadow:
                 0 0 8px rgba(255, 255, 255, 0.95),
-                0 0 18px rgba(244, 143, 177, 0.9),
-                0 2px 6px rgba(136, 74, 102, 0.55) !important;
+                0 0 16px rgba(244, 143, 177, 0.85),
+                0 2px 5px rgba(136, 74, 102, 0.5) !important;
             letter-spacing: 0.4px;
         }
 
         h1 {
-            background: linear-gradient(90deg, rgba(244, 143, 177, 0.75), rgba(165, 214, 167, 0.75));
+            background-color: #f2a7c3;
             padding: 14px 22px !important;
             border-radius: 20px !important;
-            border: 1.5px solid rgba(255, 255, 255, 0.85);
-            box-shadow: 0 6px 20px rgba(244, 143, 177, 0.25);
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(180, 110, 140, 0.2);
         }
 
         h2, h3 {
-            background: rgba(240, 168, 194, 0.6);
+            background-color: #f3b2ca;
             padding: 8px 16px !important;
             border-radius: 16px !important;
-            border: 1px solid rgba(255, 255, 255, 0.75);
+            border: 1px solid #ffffff;
             display: inline-block;
             margin-top: 8px !important;
         }
 
         /* Rounded Cards for Metrics, Alerts, and Expanders */
         [data-testid="stMetric"] {
-            background: rgba(255, 255, 255, 0.78) !important;
-            border: 2px solid #f48fb1 !important;
+            background-color: #fff5f8 !important;
+            border: 2px solid #f2a7c3 !important;
             border-radius: 20px !important;
             padding: 16px 20px !important;
-            box-shadow: 0 6px 16px rgba(165, 214, 167, 0.35);
+            box-shadow: 0 4px 12px rgba(180, 110, 140, 0.15);
         }
 
         [data-testid="stMetricLabel"] * {
@@ -83,15 +83,15 @@ def apply_custom_theme():
         }
 
         [data-testid="stMetricValue"] * {
-            color: #4e7d55 !important;
+            color: #4f7d58 !important;
             font-weight: bold !important;
         }
 
         /* Inputs & Number Boxes */
         div[data-baseweb="input"] > div,
         div[data-baseweb="base-input"] {
-            background-color: rgba(255, 255, 255, 0.88) !important;
-            border: 1.5px solid #a5d6a7 !important;
+            background-color: #fff8fa !important;
+            border: 1.5px solid #a8d5ba !important;
             border-radius: 16px !important;
             color: #3d2c35 !important;
         }
@@ -101,45 +101,43 @@ def apply_custom_theme():
             font-size: 1.05rem !important;
         }
 
-        /* Rounded Pastel Buttons */
+        /* Rounded Solid Pastel Buttons */
         .stButton > button {
-            background: linear-gradient(90deg, #f48fb1 0%, #a5d6a7 100%) !important;
+            background-color: #f2a7c3 !important;
             color: #ffffff !important;
             font-weight: bold !important;
             font-size: 1.05rem !important;
             border: 1.5px solid #ffffff !important;
             border-radius: 22px !important;
             padding: 10px 24px !important;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 1px 2px rgba(80, 40, 60, 0.4);
-            box-shadow: 0 4px 14px rgba(244, 143, 177, 0.4);
-            transition: all 0.25s ease-in-out;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 1px 2px rgba(90, 45, 65, 0.45);
+            box-shadow: 0 4px 12px rgba(180, 110, 140, 0.25);
         }
 
         .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(129, 199, 132, 0.55);
-            border-color: #fce4ec !important;
+            background-color: #a8d5ba !important;
+            border-color: #ffffff !important;
         }
 
         /* Code Blocks & Expanders */
         pre, code {
             font-family: 'Times New Roman', Times, serif !important;
-            background-color: rgba(255, 255, 255, 0.85) !important;
+            background-color: #fff8fa !important;
             color: #3d2c35 !important;
             border-radius: 16px !important;
-            border: 1.5px solid #f8bbd0 !important;
+            border: 1.5px solid #f2a7c3 !important;
             font-size: 1.05rem !important;
         }
 
         [data-testid="stExpander"] {
-            background-color: rgba(255, 255, 255, 0.72) !important;
-            border: 1.5px solid #c8e6c9 !important;
+            background-color: #fff5f8 !important;
+            border: 1.5px solid #a8d5ba !important;
             border-radius: 18px !important;
         }
 
         [data-testid="stAlert"] {
             border-radius: 18px !important;
-            border: 1.5px solid rgba(255, 255, 255, 0.85) !important;
+            border: 1.5px solid #ffffff !important;
         }
         </style>
         """,
@@ -388,14 +386,14 @@ def format_alignment_display(aligned1, aligned2):
 
 
 def render_alignment_matrix_html(matrix, seq1, seq2, path):
-    """Renders the scoring matrix in a pastel pink & matcha theme with glowing backtrace cells."""
+    """Renders the scoring matrix in a plain pastel pink & matcha theme with glowing backtrace cells."""
     row_labels = ["-"] + list(seq1)
     col_labels = ["-"] + list(seq2)
     path_set = set(path)
 
     html = [
-        "<div style='overflow-x: auto; padding: 12px; background: rgba(255,255,255,0.75); "
-        "border-radius: 20px; border: 2px solid #f48fb1; box-shadow: 0 6px 18px rgba(244,143,177,0.25);'>",
+        "<div style='overflow-x: auto; padding: 12px; background-color: #fff5f8; "
+        "border-radius: 20px; border: 2px solid #f2a7c3;'>",
         "<table style='border-collapse: separate; border-spacing: 4px; text-align: center; "
         "font-family: \"Times New Roman\", Times, serif; margin: auto;'>",
     ]
@@ -403,13 +401,13 @@ def render_alignment_matrix_html(matrix, seq1, seq2, path):
     # Header row
     html.append("<tr>")
     html.append(
-        "<th style='padding: 8px 12px; border-radius: 12px; background: #f48fb1; color: #ffffff; "
-        "text-shadow: 0 0 8px rgba(255,255,255,0.9); border: 1px solid #ffffff;'></th>"
+        "<th style='padding: 8px 12px; border-radius: 12px; background-color: #f2a7c3; color: #ffffff; "
+        "text-shadow: 0 0 8px rgba(255,255,255,0.95); border: 1px solid #ffffff;'></th>"
     )
     for j, col_char in enumerate(col_labels):
         html.append(
-            f"<th style='padding: 8px 12px; border-radius: 12px; background: #f48fb1; color: #ffffff; "
-            f"text-shadow: 0 0 8px rgba(255,255,255,0.9); border: 1px solid #ffffff;'>{j}: {col_char}</th>"
+            f"<th style='padding: 8px 12px; border-radius: 12px; background-color: #f2a7c3; color: #ffffff; "
+            f"text-shadow: 0 0 8px rgba(255,255,255,0.95); border: 1px solid #ffffff;'>{j}: {col_char}</th>"
         )
     html.append("</tr>")
 
@@ -417,24 +415,24 @@ def render_alignment_matrix_html(matrix, seq1, seq2, path):
     for i, row_char in enumerate(row_labels):
         html.append("<tr>")
         html.append(
-            f"<th style='padding: 8px 12px; border-radius: 12px; background: #f48fb1; color: #ffffff; "
-            f"text-shadow: 0 0 8px rgba(255,255,255,0.9); border: 1px solid #ffffff;'>{i}: {row_char}</th>"
+            f"<th style='padding: 8px 12px; border-radius: 12px; background-color: #f2a7c3; color: #ffffff; "
+            f"text-shadow: 0 0 8px rgba(255,255,255,0.95); border: 1px solid #ffffff;'>{i}: {row_char}</th>"
         )
         for j, val in enumerate(matrix[i]):
             if (i, j) in path_set:
                 cell_style = (
                     "padding: 8px 12px; border-radius: 12px; "
-                    "background: linear-gradient(135deg, #81c784, #66bb6a); "
+                    "background-color: #7cc48c; "
                     "color: #ffffff; font-weight: bold; "
                     "text-shadow: 0 0 8px rgba(255,255,255,0.95); "
                     "border: 1.5px solid #ffffff; "
-                    "box-shadow: 0 0 10px rgba(102, 187, 106, 0.7);"
+                    "box-shadow: 0 0 10px rgba(124, 196, 140, 0.75);"
                 )
             else:
                 cell_style = (
                     "padding: 8px 12px; border-radius: 12px; "
-                    "background-color: #fff5f8; color: #4a3540; "
-                    "border: 1px solid #f8bbd0;"
+                    "background-color: #ffffff; color: #4a3540; "
+                    "border: 1px solid #f5c2d4;"
                 )
             html.append(f"<td style='{cell_style}'>{val}</td>")
         html.append("</tr>")
