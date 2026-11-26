@@ -1,6 +1,6 @@
+import re
 import streamlit as st
 from Bio import Entrez
-from Bio import SeqIO
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 
 # Configure Entrez Email
@@ -13,26 +13,98 @@ st.set_page_config(page_title="Bioinformatics Lab Suite", layout="wide")
 # ==========================================
 # LAB 1 FUNCTIONS: Retrieval & Analysis
 # ==========================================
+def parse_fasta_text(fasta_text):
+    """Parses raw FASTA text in pure Python without importing Bio.SeqIO."""
+    lines = [line.strip() for line in fasta_text.splitlines() if line.strip()]
+    if not lines or not lines[0].startswith(">"):
+        return None
+
+    header = lines[0][1:].strip()
+    record_id = header.split()[0] if header else "Unknown"
+    sequence = "".join(line.replace(" ", "") for line in lines[1:] if not line.startswith(">")).upper()
+
+    if not sequence:
+        return None
+
+    return {
+        "name": record_id,
+        "description": header,
+        "seq": sequence,
+    }
+
+
 def retrieve_data(protein_id):
     """Retrieves a protein sequence record from NCBI Entrez using UniProt ID."""
     try:
         handle = Entrez.efetch(
             db="protein", id=protein_id, rettype="fasta", retmode="text"
         )
-        record = SeqIO.read(handle, "fasta")
-        return record
+        fasta_text = handle.read()
+        handle.close()
+        if isinstance(fasta_text, bytes):
+            fasta_text = fasta_text.decode("utf-8", errors="replace")
+        return parse_fasta_text(fasta_text)
     except Exception:
         return None
 
 
+# Standard amino acid molecular weights (average Da, water-adjusted) and pKa values
+AA_WEIGHTS = {
+    "A": 89.09, "R": 174.20, "N": 132.12, "D": 133.10, "C": 121.15,
+    "E": 147.13, "Q": 146.15, "G": 75.07, "H": 155.16, "I": 131.17,
+    "L": 131.17, "K": 146.19, "M": 149.21, "F": 165.19, "P": 115.13,
+    "S": 105.09, "T": 119.12, "W": 204.23, "Y": 181.19, "V": 117.15,
+}
+H2O_WEIGHT = 18.015
+
+
+def estimate_pi_pure_python(seq_str):
+    """Estimates isoelectric point (pI) using standard pKa values if ProtParam is unavailable."""
+    counts = {aa: seq_str.count(aa) for aa in "ACDEFGHIKLMNPQRSTVWY"}
+    low, high = 0.0, 14.0
+    for _ in range(100):
+        mid = (low + high) / 2.0
+        # Positive charges: N-term (~9.69), K (~10.5), R (~12.48), H (~6.0)
+        pos = (
+            1.0 / (1.0 + 10.0 ** (mid - 9.69))
+            + counts["K"] / (1.0 + 10.0 ** (mid - 10.5))
+            + counts["R"] / (1.0 + 10.0 ** (mid - 12.48))
+            + counts["H"] / (1.0 + 10.0 ** (mid - 6.0))
+        )
+        # Negative charges: C-term (~2.34), D (~3.65), E (~4.25), C (~8.18), Y (~10.07)
+        neg = (
+            1.0 / (1.0 + 10.0 ** (2.34 - mid))
+            + counts["D"] / (1.0 + 10.0 ** (3.65 - mid))
+            + counts["E"] / (1.0 + 10.0 ** (4.25 - mid))
+            + counts["C"] / (1.0 + 10.0 ** (8.18 - mid))
+            + counts["Y"] / (1.0 + 10.0 ** (10.07 - mid))
+        )
+        if pos - neg > 0:
+            low = mid
+        else:
+            high = mid
+    return (low + high) / 2.0
+
+
 def get_basic_analysis(sequence):
     """Analyzes sequence length, amino acid composition, molecular weight, and pI."""
-    seq_analysis = ProteinAnalysis(str(sequence))
+    seq_str = str(sequence).upper()
+    length = len(seq_str)
 
-    length = len(sequence)
-    aa_composition = seq_analysis.count_amino_acids()
-    molecular_weight = seq_analysis.molecular_weight()
-    isoelectric_point = seq_analysis.isoelectric_point()
+    try:
+        seq_analysis = ProteinAnalysis(seq_str)
+        aa_composition = seq_analysis.count_amino_acids()
+        molecular_weight = seq_analysis.molecular_weight()
+        isoelectric_point = seq_analysis.isoelectric_point()
+    except Exception:
+        cleaned = re.sub(r"[^ACDEFGHIKLMNPQRSTVWY]", "", seq_str)
+        aa_composition = {aa: cleaned.count(aa) for aa in "ACDEFGHIKLMNPQRSTVWY"}
+        total_aa = sum(aa_composition.values())
+        molecular_weight = (
+            sum(count * AA_WEIGHTS[aa] for aa, count in aa_composition.items())
+            - max(0, total_aa - 1) * H2O_WEIGHT
+        )
+        isoelectric_point = estimate_pi_pure_python(cleaned)
 
     return length, aa_composition, molecular_weight, isoelectric_point
 
@@ -44,19 +116,16 @@ def global_alignment(seq1, seq2, match_score, mismatch_score, gap_penalty):
     """Needleman-Wunsch Global Alignment Algorithm implemented from scratch."""
     m, n = len(seq1), len(seq2)
 
-    # Initialize scoring matrix and traceback pointer matrix
     score_matrix = [[0 for _ in range(n + 1)] for _ in range(m + 1)]
     traceback = [[None for _ in range(n + 1)] for _ in range(m + 1)]
 
-    # Initialize first column and first row
     for i in range(1, m + 1):
         score_matrix[i][0] = i * gap_penalty
-        traceback[i][0] = "U"  # Up
+        traceback[i][0] = "U"
     for j in range(1, n + 1):
         score_matrix[0][j] = j * gap_penalty
-        traceback[0][j] = "L"  # Left
+        traceback[0][j] = "L"
 
-    # Fill the scoring matrix
     for i in range(1, m + 1):
         for j in range(1, n + 1):
             match = score_matrix[i - 1][j - 1] + (
@@ -68,15 +137,13 @@ def global_alignment(seq1, seq2, match_score, mismatch_score, gap_penalty):
             max_score = max(match, delete, insert)
             score_matrix[i][j] = max_score
 
-            # Record direction for backtrace
             if max_score == match:
-                traceback[i][j] = "D"  # Diagonal
+                traceback[i][j] = "D"
             elif max_score == delete:
-                traceback[i][j] = "U"  # Up
+                traceback[i][j] = "U"
             else:
-                traceback[i][j] = "L"  # Left
+                traceback[i][j] = "L"
 
-    # Backtrace from bottom-right cell (m, n)
     aligned_seq1, aligned_seq2 = [], []
     i, j = m, n
     backtrace_path = [(i, j)]
@@ -109,14 +176,12 @@ def local_alignment(seq1, seq2, match_score, mismatch_score, gap_penalty):
     """Smith-Waterman Local Alignment Algorithm implemented from scratch."""
     m, n = len(seq1), len(seq2)
 
-    # Initialize scoring matrix (all zeros) and traceback matrix
     score_matrix = [[0 for _ in range(n + 1)] for _ in range(m + 1)]
     traceback = [[None for _ in range(n + 1)] for _ in range(m + 1)]
 
     max_score = 0
     max_pos = (0, 0)
 
-    # Fill the scoring matrix
     for i in range(1, m + 1):
         for j in range(1, n + 1):
             match = score_matrix[i - 1][j - 1] + (
@@ -125,7 +190,6 @@ def local_alignment(seq1, seq2, match_score, mismatch_score, gap_penalty):
             delete = score_matrix[i - 1][j] + gap_penalty
             insert = score_matrix[i][j - 1] + gap_penalty
 
-            # Local alignment resets negative scores to 0
             cell_score = max(0, match, delete, insert)
             score_matrix[i][j] = cell_score
 
@@ -138,12 +202,10 @@ def local_alignment(seq1, seq2, match_score, mismatch_score, gap_penalty):
             else:
                 traceback[i][j] = "L"
 
-            # Track highest score in the entire matrix
             if cell_score >= max_score:
                 max_score = cell_score
                 max_pos = (i, j)
 
-    # Backtrace starting from the highest-scoring cell until a 0 is reached
     aligned_seq1, aligned_seq2 = [], []
     i, j = max_pos
     backtrace_path = [(i, j)]
@@ -197,7 +259,6 @@ def render_alignment_matrix_html(matrix, seq1, seq2, path):
         "<table style='border-collapse: collapse; text-align: center; font-family: monospace;'>",
     ]
 
-    # Header row
     html.append("<tr>")
     html.append(
         "<th style='border: 1px solid #555; padding: 6px 10px; background: #222; color: #fff;'></th>"
@@ -208,7 +269,6 @@ def render_alignment_matrix_html(matrix, seq1, seq2, path):
         )
     html.append("</tr>")
 
-    # Data rows
     for i, row_char in enumerate(row_labels):
         html.append("<tr>")
         html.append(
@@ -242,7 +302,6 @@ lab_selection = st.sidebar.radio(
     ["Lab 1: Sequence Retrieval & Analysis", "Lab 2: Pairwise Sequence Alignment"],
 )
 
-# Initialize session state to optionally pass sequences from Lab 1 to Lab 2
 if "retrieved_seq" not in st.session_state:
     st.session_state.retrieved_seq = ""
 
@@ -266,19 +325,17 @@ if lab_selection == "Lab 1: Sequence Retrieval & Analysis":
 
             if record:
                 st.success("Successfully retrieved protein record!")
-                st.session_state.retrieved_seq = str(record.seq)
+                st.session_state.retrieved_seq = record["seq"]
 
-                # Display basic record information
                 st.subheader("1. Protein Record Details")
-                st.write(f"**Name / ID:** `{record.name}`")
-                st.write(f"**Description:** {record.description}")
+                st.write(f"**Name / ID:** `{record['name']}`")
+                st.write(f"**Description:** {record['description']}")
 
                 with st.expander("View Full FASTA Sequence"):
-                    st.code(str(record.seq), language="text")
+                    st.code(record["seq"], language="text")
 
-                # Perform sequence analysis
                 length, aa_comp, mol_weight, iso_point = get_basic_analysis(
-                    record.seq
+                    record["seq"]
                 )
 
                 st.subheader("2. Basic Sequence Analysis")
@@ -315,7 +372,6 @@ elif lab_selection == "Lab 2: Pairwise Sequence Alignment":
         " **Smith-Waterman (Local)** algorithms."
     )
 
-    # Option to load sequence from Lab 1 if available
     if st.session_state.retrieved_seq:
         st.info(
             f"A sequence from Lab 1 ({len(st.session_state.retrieved_seq)} aa) is"
@@ -324,7 +380,6 @@ elif lab_selection == "Lab 2: Pairwise Sequence Alignment":
         if st.button("Use First 15 Residues of Lab 1 Sequence as Sequence 1"):
             st.session_state.seq1_input = st.session_state.retrieved_seq[:15]
 
-    # --- Alignment Configuration ---
     st.subheader("1. Alignment Settings & Input Sequences")
 
     alignment_type = st.radio(
@@ -345,7 +400,6 @@ elif lab_selection == "Lab 2: Pairwise Sequence Alignment":
             value="GATTACA",
         ).strip().upper()
 
-    # --- Scoring Metrics ---
     st.markdown("**Scoring Parameters:**")
     col_m, col_mm, col_g = st.columns(3)
     with col_m:
@@ -361,7 +415,6 @@ elif lab_selection == "Lab 2: Pairwise Sequence Alignment":
         if not seq1 or not seq2:
             st.error("Please enter both Sequence 1 and Sequence 2.")
         else:
-            # Execute chosen algorithm
             if "Global" in alignment_type:
                 score, aln1, aln2, matrix, path = global_alignment(
                     seq1, seq2, match_score, mismatch_score, gap_penalty
@@ -374,19 +427,15 @@ elif lab_selection == "Lab 2: Pairwise Sequence Alignment":
             st.divider()
             st.subheader("2. Alignment Results")
 
-            # Display Alignment Score
             st.metric(label="Optimal Alignment Score", value=score)
 
-            # Display Aligned Sequences
             st.markdown("**Aligned Sequences:**")
             alignment_visual = format_alignment_display(aln1, aln2)
             st.code(alignment_visual, language="text")
 
-            # Display Backtrace Path Coordinates
             with st.expander("View Backtrace Coordinate Path (Row, Col)"):
                 st.write(" -> ".join([f"({r}, {c})" for r, c in path]))
 
-            # Display Alignment Matrix with Highlighted Backtrace
             st.markdown("**Alignment Matrix & Highlighted Backtrace Path:**")
             st.caption(
                 "Green cells indicate the optimal backtrace path. Row/Column"
