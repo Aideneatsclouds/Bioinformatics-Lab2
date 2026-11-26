@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 from Bio import Entrez
 from Bio import SeqIO
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
@@ -52,10 +51,10 @@ def global_alignment(seq1, seq2, match_score, mismatch_score, gap_penalty):
     # Initialize first column and first row
     for i in range(1, m + 1):
         score_matrix[i][0] = i * gap_penalty
-        traceback[i][0] = 'U'  # Up
+        traceback[i][0] = "U"  # Up
     for j in range(1, n + 1):
         score_matrix[0][j] = j * gap_penalty
-        traceback[0][j] = 'L'  # Left
+        traceback[0][j] = "L"  # Left
 
     # Fill the scoring matrix
     for i in range(1, m + 1):
@@ -71,11 +70,11 @@ def global_alignment(seq1, seq2, match_score, mismatch_score, gap_penalty):
 
             # Record direction for backtrace
             if max_score == match:
-                traceback[i][j] = 'D'  # Diagonal
+                traceback[i][j] = "D"  # Diagonal
             elif max_score == delete:
-                traceback[i][j] = 'U'  # Up
+                traceback[i][j] = "U"  # Up
             else:
-                traceback[i][j] = 'L'  # Left
+                traceback[i][j] = "L"  # Left
 
     # Backtrace from bottom-right cell (m, n)
     aligned_seq1, aligned_seq2 = [], []
@@ -84,17 +83,17 @@ def global_alignment(seq1, seq2, match_score, mismatch_score, gap_penalty):
 
     while i > 0 or j > 0:
         direction = traceback[i][j]
-        if direction == 'D':
+        if direction == "D":
             aligned_seq1.append(seq1[i - 1])
             aligned_seq2.append(seq2[j - 1])
             i -= 1
             j -= 1
-        elif direction == 'U':
+        elif direction == "U":
             aligned_seq1.append(seq1[i - 1])
-            aligned_seq2.append('-')
+            aligned_seq2.append("-")
             i -= 1
-        elif direction == 'L':
-            aligned_seq1.append('-')
+        elif direction == "L":
+            aligned_seq1.append("-")
             aligned_seq2.append(seq2[j - 1])
             j -= 1
         backtrace_path.append((i, j))
@@ -133,11 +132,11 @@ def local_alignment(seq1, seq2, match_score, mismatch_score, gap_penalty):
             if cell_score == 0:
                 traceback[i][j] = None
             elif cell_score == match:
-                traceback[i][j] = 'D'
+                traceback[i][j] = "D"
             elif cell_score == delete:
-                traceback[i][j] = 'U'
+                traceback[i][j] = "U"
             else:
-                traceback[i][j] = 'L'
+                traceback[i][j] = "L"
 
             # Track highest score in the entire matrix
             if cell_score >= max_score:
@@ -151,17 +150,17 @@ def local_alignment(seq1, seq2, match_score, mismatch_score, gap_penalty):
 
     while i > 0 and j > 0 and score_matrix[i][j] > 0:
         direction = traceback[i][j]
-        if direction == 'D':
+        if direction == "D":
             aligned_seq1.append(seq1[i - 1])
             aligned_seq2.append(seq2[j - 1])
             i -= 1
             j -= 1
-        elif direction == 'U':
+        elif direction == "U":
             aligned_seq1.append(seq1[i - 1])
-            aligned_seq2.append('-')
+            aligned_seq2.append("-")
             i -= 1
-        elif direction == 'L':
-            aligned_seq1.append('-')
+        elif direction == "L":
+            aligned_seq1.append("-")
             aligned_seq2.append(seq2[j - 1])
             j -= 1
         else:
@@ -187,32 +186,47 @@ def format_alignment_display(aligned1, aligned2):
     return f"Seq 1: {aligned1}\n       {''.join(midline)}\nSeq 2: {aligned2}"
 
 
-def style_alignment_matrix(matrix, seq1, seq2, path):
-    """Creates a styled Pandas DataFrame highlighting the backtrace path."""
-    # Add space padding for the 0th row and column
+def render_alignment_matrix_html(matrix, seq1, seq2, path):
+    """Renders the scoring matrix as an HTML table with backtrace cells highlighted."""
     row_labels = ["-"] + list(seq1)
     col_labels = ["-"] + list(seq2)
-
-    # Create unique multi-index or formatted labels to prevent duplicate index styling issues
-    df = pd.DataFrame(matrix)
     path_set = set(path)
 
-    def highlight_cells(data):
-        styles = pd.DataFrame("", index=data.index, columns=data.columns)
-        for r, c in path_set:
-            styles.iloc[r, c] = (
-                "background-color: #2e7d32; color: white; font-weight: bold;"
-            )
-        return styles
+    html = [
+        "<div style='overflow-x: auto;'>",
+        "<table style='border-collapse: collapse; text-align: center; font-family: monospace;'>",
+    ]
 
-    # Apply styling using integer coordinates before renaming headers
-    styled_df = df.style.apply(highlight_cells, axis=None)
+    # Header row
+    html.append("<tr>")
+    html.append(
+        "<th style='border: 1px solid #555; padding: 6px 10px; background: #222; color: #fff;'></th>"
+    )
+    for j, col_char in enumerate(col_labels):
+        html.append(
+            f"<th style='border: 1px solid #555; padding: 6px 10px; background: #222; color: #fff;'>{j}: {col_char}</th>"
+        )
+    html.append("</tr>")
 
-    # Set readable row/column headers (with index number to guarantee uniqueness)
-    styled_df.index = [f"{idx}: {char}" for idx, char in enumerate(row_labels)]
-    styled_df.columns = [f"{idx}: {char}" for idx, char in enumerate(col_labels)]
+    # Data rows
+    for i, row_char in enumerate(row_labels):
+        html.append("<tr>")
+        html.append(
+            f"<th style='border: 1px solid #555; padding: 6px 10px; background: #222; color: #fff;'>{i}: {row_char}</th>"
+        )
+        for j, val in enumerate(matrix[i]):
+            if (i, j) in path_set:
+                cell_style = (
+                    "border: 1px solid #555; padding: 6px 10px; "
+                    "background-color: #2e7d32; color: #ffffff; font-weight: bold;"
+                )
+            else:
+                cell_style = "border: 1px solid #555; padding: 6px 10px;"
+            html.append(f"<td style='{cell_style}'>{val}</td>")
+        html.append("</tr>")
 
-    return styled_df
+    html.append("</table></div>")
+    return "".join(html)
 
 
 # ==========================================
@@ -379,5 +393,5 @@ elif lab_selection == "Lab 2: Pairwise Sequence Alignment":
                 " headers show `Index: Character`."
             )
 
-            styled_matrix = style_alignment_matrix(matrix, seq1, seq2, path)
-            st.dataframe(styled_matrix, use_container_width=True)
+            matrix_html = render_alignment_matrix_html(matrix, seq1, seq2, path)
+            st.markdown(matrix_html, unsafe_allow_html=True)
